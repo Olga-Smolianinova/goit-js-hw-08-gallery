@@ -35,7 +35,7 @@
 // 9. Пролистывание изображений галереи в открытом модальном окне клавишами "влево" и "вправо".
 
 // для задания 9 глобально объявляем переменную
-let currentIndex = 0;
+// let index = 0;
 
 // 1. Создание и рендер разметки по массиву данных и предоставленному шаблону.
 import gallery from "./gallery.js";
@@ -75,15 +75,9 @@ closeModalBtn.addEventListener("click", onCloseModal);
 overlayRef.addEventListener("click", onOverlayClick);
 // console.log(overlayRef);
 
-// 8. Для закрытие модального окна по нажатию клавиши ESC - сначала вешаем слушателя события.
-window.addEventListener("keydown", onPressEscape);
-
-// 9. Пролистывание изображений галереи в открытом модальном окне клавишами "влево" и "вправо" - сначала вешаем слушателя события.
-window.addEventListener("keyup", onScrollingModalImg);
-
 // ФУНКЦИИ
-// 1.2. Создание и рендер разметки по массиву данных и предоставленному шаблону.
-const createGallery = (picture) => {
+// 1.2. Создание и рендер разметки по массиву данных и предоставленному шаблону. Добавляем параметр index - для задания 9
+const createGallery = (picture, index) => {
   // создаем (<li class="gallery__item">)
   const listOfGalleryRef = document.createElement("li");
   listOfGalleryRef.classList.add('gallery__item"');
@@ -102,8 +96,11 @@ const createGallery = (picture) => {
   imageOfGalleryRef.src = picture.preview;
   imageOfGalleryRef.dataset.source = picture.original;
   imageOfGalleryRef.alt = picture.description;
+
   // для задания 9 добавляем data-index
-  imageOfGalleryRef.dataset.index = currentIndex;
+  imageOfGalleryRef.dataset.index = index;
+  // console.log(imageOfGalleryRef);
+  // console.log(index);
 
   // вставка img в a
   linkOfGalleryRef.appendChild(imageOfGalleryRef);
@@ -115,7 +112,9 @@ const createGallery = (picture) => {
 };
 
 // 1.3. выводим map
-const galleryCard = gallery.map((picture) => createGallery(picture));
+const galleryCard = gallery.map((picture, index) =>
+  createGallery(picture, index)
+);
 // console.log(galleryCard);
 
 //1.4. вставка и распыление в DOM
@@ -141,18 +140,32 @@ function handlerGalleryClick(event) {
   const imageAlt = imageRef.alt;
   // console.log(imageAlt);
 
+  // 9. для currentIndex при пролистывании фотографий в модальном окне
+  const currentIndex = imageRef.dataset.index;
+  // console.log(currentIndex);
+
   // + 3. Открытие модального окна по клику на элементе галереи
-  openModalImage(originalImgURL, imageAlt);
+  openModalImage(originalImgURL, imageAlt, currentIndex);
 }
 
 // 3. ОТКРЫТИЕ модального окна по клику на элементе галереи
-function openModalImage(url, alt) {
+function openModalImage(url, alt, idx) {
   // 4. Подмена значения атрибута src элемента img.lightbox__image.
   modalImg.src = url;
   modalImg.alt = alt;
+  modalImg.dataset.index = idx;
+
+  // console.log(modalImg);
 
   // Добавляем class "is-open" по клику на элементе галереи. Модальное окно открывается с большой картинкой.
   openModal.classList.add("is-open");
+
+  // 8. Для закрытие модального окна по нажатию клавиши ESC - сначала вешаем слушателя события.
+  window.addEventListener("keydown", onPressEscape);
+
+  // 9. Пролистывание изображений галереи в открытом модальном окне клавишами "влево" и "вправо" - сначала вешаем слушателя события.
+  window.addEventListener("keyup", onScrollingModalImg);
+  // console.log(openModal);
 }
 
 // 5.3.ЗАКРЫТИЕ модального окна по клику на кнопку button[data-action="close-lightbox"]
@@ -162,7 +175,20 @@ function onCloseModal() {
   // 6. Очистка значения атрибута src элемента img.lightbox__image. Это необходимо для того, чтобы при следующем открытии модального окна, пока грузится изображение, мы не видели предыдущее.
   modalImg.src = "";
   modalImg.alt = "";
+  modalImg.dataset.index = "";
+
+  index = 0;
+  scrollIndex = 0;
+
   // console.log(modalImg);
+
+  // 8.  При закрытии модального окна по нажатию клавиши ESC - удаляем слушателя события.
+  window.removeEventListener("keydown", onPressEscape);
+
+  // 9. Пролистывание изображений галереи в открытом модальном окне клавишами "влево" и "вправо" - удаляем слушателя события после закрытия модального окна.
+
+  window.removeEventListener("keyup", onScrollingModalImg);
+  // console.log(openModal);
 }
 
 // Дополнительно
@@ -188,28 +214,72 @@ function onPressEscape(event) {
   }
 }
 
-// 9.1. Пролистывание изображений галереи в открытом модальном окне клавишами "влево" и "вправо".
+// 9.2. Пролистывание изображений галереи в открытом модальном окне клавишами "влево" и "вправо".
+
+// Решение когда пролистывание начинается с крайних элементов
+let index = 0;
+let scrollIndex = 0;
 
 function onScrollingModalImg(event) {
-  // console.log(event);
+  // console.dir(event.target);
   // console.log(event.key);
   // console.log(event.code);
 
   // console.log(modalImg);
   // console.log(modalImg.src);
-  // console.log(currentIndex);
+
+  // console.dir(gallery);
   // console.log(gallery.length);
 
   if (event.code === "ArrowRight") {
-    currentIndex += 1;
-    if (currentIndex === gallery.length) {
-      currentIndex = 0;
+    if (scrollIndex === 0) {
+      index = 0;
+      scrollIndex = 1;
+    } else {
+      index += 1;
+      if (index === gallery.length) {
+        index = 0;
+      }
     }
-  } else if (event.code === "ArrowLeft") {
-    currentIndex -= 1;
-    if (currentIndex < 0) {
-      currentIndex = gallery.length - 1;
-    }
+    modalImg.src = gallery[index].original;
   }
-  modalImg.src = gallery[currentIndex].original;
+
+  if (event.code === "ArrowLeft") {
+    if (scrollIndex === 0) {
+      index = gallery.length - 1;
+      scrollIndex = 1;
+    } else {
+      index -= 1;
+      if (index === -1) {
+        index = gallery.length - 1;
+      }
+    }
+    modalImg.src = gallery[index].original;
+  }
 }
+
+// ++++ Решение, когда пролистывание начинается с соседнего элемента
+// let currentIndex = 0;
+// function onScrollingModalImg(event) {
+//   // console.log(event);
+//   // console.log(event.key);
+//   // console.log(event.code);
+
+//   // console.log(modalImg);
+//   // console.log(modalImg.src);
+//   // console.log(currentIndex);
+//   // console.log(gallery.length);
+
+//   if (event.code === "ArrowRight") {
+//     currentIndex += 1;
+//     if (currentIndex === gallery.length) {
+//       currentIndex = 0;
+//     }
+//   } else if (event.code === "ArrowLeft") {
+//     currentIndex -= 1;
+//     if (currentIndex < 0) {
+//       currentIndex = gallery.length - 1;
+//     }
+//   }
+//   modalImg.src = gallery[currentIndex].original;
+// }
