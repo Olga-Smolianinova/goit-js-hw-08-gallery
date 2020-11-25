@@ -43,7 +43,7 @@ import gallery from "./gallery.js";
 
 // Рендеринг кода
 // ПОИСК
-
+//
 // 1.1. поиск и вывод родительского элемента для li(в даной задаче <ul class="gallery js-gallery"></ul>)
 const galleryRef = document.querySelector(".js-gallery"); //1
 
@@ -115,10 +115,10 @@ const createGallery = (picture, index) => {
 const galleryCard = gallery.map((picture, index) =>
   createGallery(picture, index)
 );
-// console.log(galleryCard);
 
 //1.4. вставка и распыление в DOM
 galleryRef.append(...galleryCard);
+// console.log(galleryCard);
 
 // 2.3. Реализация делегирования на галерее ul.js-gallery и получение url большого изображения.
 function handlerGalleryClick(event) {
@@ -141,8 +141,8 @@ function handlerGalleryClick(event) {
   // console.log(imageAlt);
 
   // 9. для currentIndex при пролистывании фотографий в модальном окне
-  const currentIndex = imageRef.dataset.index;
-  // console.log(currentIndex);
+  let currentIndex = imageRef.dataset.index;
+  console.log(currentIndex);
 
   // + 3. Открытие модального окна по клику на элементе галереи
   openModalImage(originalImgURL, imageAlt, currentIndex);
@@ -177,8 +177,8 @@ function onCloseModal() {
   modalImg.alt = "";
   modalImg.dataset.index = "";
 
-  index = 0;
-  scrollIndex = 0;
+  // index = 0;
+  // scrollIndex = 0;
 
   // console.log(modalImg);
 
@@ -216,49 +216,76 @@ function onPressEscape(event) {
 
 // 9.2. Пролистывание изображений галереи в открытом модальном окне клавишами "влево" и "вправо".
 
-// Решение когда пролистывание начинается с крайних элементов
-let index = 0;
-let scrollIndex = 0;
+// решение когда currentIndex объявлен в глобальной зоне видимости
+
+// const galleryImg = document.querySelector("[data-index]");
+// console.log(galleryImg);
+// console.log(galleryImg.dataset.index);
+
+let currentIndex = gallery.filter((elm) => elm.original).indexOf(modalImg.src);
 
 function onScrollingModalImg(event) {
-  // console.dir(event.target);
-  // console.log(event.key);
-  // console.log(event.code);
-
-  // console.log(modalImg);
-  // console.log(modalImg.src);
-
-  // console.dir(gallery);
-  // console.log(gallery.length);
+  console.log(currentIndex);
 
   if (event.code === "ArrowRight") {
-    if (scrollIndex === 0) {
-      index = 0;
-      scrollIndex = 1;
-    } else {
-      index += 1;
-      if (index === gallery.length) {
-        index = 0;
-      }
+    currentIndex += 1;
+    if (currentIndex === gallery.length) {
+      currentIndex = 0;
     }
-    modalImg.src = gallery[index].original;
-  }
-
-  if (event.code === "ArrowLeft") {
-    if (scrollIndex === 0) {
-      index = gallery.length - 1;
-      scrollIndex = 1;
-    } else {
-      index -= 1;
-      if (index === -1) {
-        index = gallery.length - 1;
-      }
+  } else if (event.code === "ArrowLeft") {
+    currentIndex -= 1;
+    if (currentIndex < 0) {
+      currentIndex = gallery.length - 1;
     }
-    modalImg.src = gallery[index].original;
   }
+  modalImg.src = gallery[currentIndex].original;
+  // modalImg.alt = gallery[currentIndex].description;
+  // modalImg.dataset.index = currentIndex;
 }
 
-// ++++ Решение, когда пролистывание начинается с соседнего элемента
+// Решение когда пролистывание начинается с крайних элементов и с двумя новыми переменными
+// let index = 0;
+// let scrollIndex = 0;
+
+// function onScrollingModalImg(event) {
+//   // console.dir(event.target);
+//   // console.log(event.key);
+//   // console.log(event.code);
+
+//   // console.log(modalImg);
+//   // console.log(modalImg.src);
+
+//   // console.dir(gallery);
+//   // console.log(gallery.length);
+
+//   if (event.code === "ArrowRight") {
+//     if (scrollIndex === 0) {
+//       index = 0;
+//       scrollIndex = 1;
+//     } else {
+//       index += 1;
+//       if (index === gallery.length) {
+//         index = 0;
+//       }
+//     }
+//     modalImg.src = gallery[index].original;
+//   }
+
+//   if (event.code === "ArrowLeft") {
+//     if (scrollIndex === 0) {
+//       index = gallery.length - 1;
+//       scrollIndex = 1;
+//     } else {
+//       index -= 1;
+//       if (index === -1) {
+//         index = gallery.length - 1;
+//       }
+//     }
+//     modalImg.src = gallery[index].original;
+//   }
+// }
+
+// + Решение, когда пролистывание начинается с соседнего элемента
 // let currentIndex = 0;
 // function onScrollingModalImg(event) {
 //   // console.log(event);
